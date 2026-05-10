@@ -1,0 +1,26 @@
+services:
+  egresosbot-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: EgresosBot-Api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5021:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      ConnectionStrings__DefaultConnection: Server=66.179.240.10,56969;Database=EgresosBotDb;ConnectRetryCount=3;ConnectRetryInterval=10;Connection Timeout=30;User ID=Microservicio;Password=2wD!UCabvUvt;Trusted_Connection=False;Encrypt=True;TrustServerCertificate=True;
+      Jwt__Issuer: EgresosBot
+      Jwt__Audience: EgresosBot.Api
+      Jwt__SecretKey: EgresosBot_SuperSecretKey_2026_Minimo_32
+      Jwt__AccessTokenMinutes: "60"
+      Jwt__RefreshTokenDays: "30"
+      SeedUser__Enabled: "true"
+      SeedUser__TenantName: Empresa Demo
+      SeedUser__TenantSlug: empresa-demo
+      SeedUser__UserFirstName: Admin
+      SeedUser__UserLastName: Demo
+      SeedUser__UserEmail: admin@empresa-demo.com
+      SeedUser__UserPassword: Admin123$
+      SeedUser__RoleCode: OWNER

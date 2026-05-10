@@ -5,6 +5,7 @@ using EgresosBot.Api.Infrastructure.Persistence;
 using EgresosBot.Api.Infrastructure.Seed;
 using EgresosBot.Api.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -72,7 +73,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "EgresosBot.Api v1");
+        options.SwaggerEndpoint("v1/swagger.json", "EgresosBot.Api v1");
         options.RoutePrefix = "swagger";
     });
 }
@@ -82,6 +83,11 @@ using (var scope = app.Services.CreateScope())
     var seeder = scope.ServiceProvider.GetRequiredService<AppDataSeeder>();
     await seeder.SeedAsync();
 }
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 app.MapGet("/", () => Results.Ok(new
 {
@@ -99,7 +105,7 @@ app.MapGet("/apidocs", () => Results.Content(
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>EgresosBot API Docs</title>
-        <link rel="stylesheet" href="/swagger/swagger-ui.css" />
+        <link rel="stylesheet" href="swagger/swagger-ui.css" />
         <style>
             html { box-sizing: border-box; overflow-y: scroll; }
             *, *:before, *:after { box-sizing: inherit; }
@@ -108,12 +114,12 @@ app.MapGet("/apidocs", () => Results.Content(
     </head>
     <body>
         <div id="swagger-ui"></div>
-        <script src="/swagger/swagger-ui-bundle.js"></script>
-        <script src="/swagger/swagger-ui-standalone-preset.js"></script>
+        <script src="swagger/swagger-ui-bundle.js"></script>
+        <script src="swagger/swagger-ui-standalone-preset.js"></script>
         <script>
             window.onload = function () {
                 window.ui = SwaggerUIBundle({
-                    url: "/swagger/v1/swagger.json",
+                    url: "swagger/v1/swagger.json",
                     dom_id: "#swagger-ui",
                     deepLinking: true,
                     presets: [
@@ -129,7 +135,6 @@ app.MapGet("/apidocs", () => Results.Content(
     """,
     "text/html"));
 
-app.UseHttpsRedirection();
 app.UseCors("DevCors");
 app.UseAuthentication();
 app.UseAuthorization();
