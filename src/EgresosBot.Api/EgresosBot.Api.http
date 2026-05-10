@@ -1,0 +1,6 @@
+@EgresosBot.Api_HostAddress = http://localhost:5262
+
+GET {{EgresosBot.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
