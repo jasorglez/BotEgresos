@@ -20,6 +20,7 @@ public sealed class BotWebhookService(
     private const string ExpenseDescriptionState = "EXPENSE_DESCRIPTION";
     private const string ExpenseConfirmState = "EXPENSE_CONFIRM";
     private const int RecentExpensesLimit = 5;
+    private const int DailyChartDays = 7;
 
     public async Task<BotWebhookResponse> HandleTelegramAsync(TelegramWebhookRequest request, CancellationToken cancellationToken = default)
     {
@@ -226,6 +227,19 @@ public sealed class BotWebhookService(
                         Channel = "TELEGRAM",
                         ChatId = chatId,
                         Message = BuildHelpMessage(botLink.User)
+                    };
+                }
+
+                if (lowerText is "5" or "g" or "grafica" or "gráfica" or "grafica dia" or "grafica por dia" or "gráfica por día")
+                {
+                    var chartMessage = await BuildDailyExpenseChartAsync(botLink.TenantId, cancellationToken);
+                    await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
+                    return new BotWebhookResponse
+                    {
+                        Success = true,
+                        Channel = "TELEGRAM",
+                        ChatId = chatId,
+                        Message = chartMessage + "\n\n" + BuildMainMenu(botLink.User)
                     };
                 }
 
@@ -462,18 +476,62 @@ public sealed class BotWebhookService(
 
     private static string BuildMainMenu(AppUser user)
     {
-        return $"╔══════════════════╗\n║ ✨ Menú principal ║\n╚══════════════════╝\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ [A] Registrar egreso\n2️⃣ [B] Ver últimos egresos\n3️⃣ [D] Ayuda\n4️⃣ [E] Cancelar operación\n0️⃣ [F] Volver al menú";
+        return $"╔══════════════════╗\n║ ✨ Menú principal ║\n╚══════════════════╝\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ [A] Registrar egreso\n2️⃣ [B] Ver últimos egresos\n3️⃣ [D] Ayuda\n4️⃣ [E] Cancelar operación\n5️⃣ [G] Gráfica por día\n0️⃣ [F] Volver al menú";
     }
 
     private static string BuildHelpMessage(AppUser user)
     {
-        return $"🆘 Ayuda\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ [A] Registrar egreso\n2️⃣ [B] Ver últimos egresos\n3️⃣ [D] Ayuda\n4️⃣ [E] Cancelar operación\n0️⃣ [F] Volver al menú\n\nSi eliges registrar, el bot te pedirá:\n• monto\n• descripción\n• confirmación\n\nSi te equivocas en cualquier paso, escribe 0, F, 4, E, cancelar o menu.";
+        return $"🆘 Ayuda\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ [A] Registrar egreso\n2️⃣ [B] Ver últimos egresos\n3️⃣ [D] Ayuda\n4️⃣ [E] Cancelar operación\n5️⃣ [G] Gráfica por día\n0️⃣ [F] Volver al menú\n\nSi eliges registrar, el bot te pedirá:\n• monto\n• descripción\n• confirmación\n\nSi te equivocas en cualquier paso, escribe 0, F, 4, E, cancelar o menu.";
     }
 
     private static string BuildUserDisplayName(AppUser user)
     {
         var fullName = $"{user.FirstName} {user.LastName}".Trim();
         return string.IsNullOrWhiteSpace(fullName) ? user.Email : fullName;
+    }
+
+    private async Task<string> BuildDailyExpenseChartAsync(int tenantId, CancellationToken cancellationToken)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var startDate = today.AddDays(-(DailyChartDays - 1));
+
+        var rawData = await dbContext.Expenses
+            .AsNoTracking()
+            .Where(x => x.TenantId == tenantId && x.ExpenseDate >= startDate)
+            .GroupBy(x => x.ExpenseDate)
+            .Select(g => new
+            {
+                Date = g.Key,
+                Total = g.Sum(x => x.AmountTotal)
+            })
+            .ToListAsync(cancellationToken);
+
+        var totalsByDay = rawData.ToDictionary(x => x.Date, x => x.Total);
+        var series = Enumerable.Range(0, DailyChartDays)
+            .Select(offset => startDate.AddDays(offset))
+            .Select(date => new
+            {
+                Date = date,
+                Total = totalsByDay.TryGetValue(date, out var total) ? total : 0m
+            })
+            .ToList();
+
+        if (series.All(x => x.Total <= 0))
+        {
+            return "📊 Gráfica por día\n\nNo hay egresos registrados en los últimos 7 días.";
+        }
+
+        var maxTotal = series.Max(x => x.Total);
+        var lines = series.Select(item =>
+        {
+            var blocks = maxTotal <= 0
+                ? string.Empty
+                : new string('█', Math.Max(1, (int)Math.Round((item.Total / maxTotal) * 10m, MidpointRounding.AwayFromZero)));
+
+            return $"{item.Date:MM-dd} {blocks} ${item.Total:0.00}";
+        });
+
+        return "📊 Gráfica por día\n\n" + string.Join("\n", lines);
     }
 
     private sealed class TelegramExpenseDraft
