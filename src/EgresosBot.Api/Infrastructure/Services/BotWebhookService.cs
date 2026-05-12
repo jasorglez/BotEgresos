@@ -19,6 +19,7 @@ public sealed class BotWebhookService(
     private const string ExpenseAmountState = "EXPENSE_AMOUNT";
     private const string ExpenseDescriptionState = "EXPENSE_DESCRIPTION";
     private const string ExpenseConfirmState = "EXPENSE_CONFIRM";
+    private const int RecentExpensesLimit = 5;
 
     public async Task<BotWebhookResponse> HandleTelegramAsync(TelegramWebhookRequest request, CancellationToken cancellationToken = default)
     {
@@ -156,13 +157,13 @@ public sealed class BotWebhookService(
                 Success = true,
                 Channel = "TELEGRAM",
                 ChatId = chatId,
-                Message = "Escribe registrar para capturar un egreso o cancelar para salir."
+                Message = BuildMainMenu()
             };
         }
 
         var lowerText = normalizedText.ToLowerInvariant();
 
-        if (lowerText is "cancelar" or "salir")
+        if (lowerText is "4" or "cancelar" or "salir")
         {
             session.CurrentState = IdleState;
             draft = new TelegramExpenseDraft();
@@ -173,14 +174,14 @@ public sealed class BotWebhookService(
                 Success = true,
                 Channel = "TELEGRAM",
                 ChatId = chatId,
-                Message = "Operacion cancelada. Escribe registrar para iniciar otro egreso."
+                Message = "Operacion cancelada.\n\n" + BuildMainMenu()
             };
         }
 
         switch (session.CurrentState)
         {
             case IdleState:
-                if (lowerText is "registrar" or "egreso" or "gasto")
+                if (lowerText is "1" or "a" or "registrar" or "egreso" or "gasto")
                 {
                     session.CurrentState = ExpenseAmountState;
                     draft = new TelegramExpenseDraft();
@@ -195,13 +196,46 @@ public sealed class BotWebhookService(
                     };
                 }
 
+                if (lowerText is "2" or "ultimos" or "últimos" or "ver")
+                {
+                    var recentExpenses = await expenseService.GetExpensesAsync(botLink.TenantId, cancellationToken);
+                    var recentItems = recentExpenses
+                        .Take(RecentExpensesLimit)
+                        .Select(x => $"#{x.Id} {x.ExpenseDate:yyyy-MM-dd} ${x.AmountTotal:0.00} - {x.Description}")
+                        .ToList();
+
+                    await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
+
+                    return new BotWebhookResponse
+                    {
+                        Success = true,
+                        Channel = "TELEGRAM",
+                        ChatId = chatId,
+                        Message = recentItems.Count == 0
+                            ? "No hay egresos registrados todavia.\n\n" + BuildMainMenu()
+                            : "Ultimos egresos:\n" + string.Join("\n", recentItems) + "\n\n" + BuildMainMenu()
+                    };
+                }
+
+                if (lowerText is "3" or "ayuda" or "help")
+                {
+                    await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
+                    return new BotWebhookResponse
+                    {
+                        Success = true,
+                        Channel = "TELEGRAM",
+                        ChatId = chatId,
+                        Message = BuildHelpMessage()
+                    };
+                }
+
                 await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
                 return new BotWebhookResponse
                 {
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = "Comandos disponibles: registrar, cancelar."
+                    Message = BuildMainMenu()
                 };
 
             case ExpenseAmountState:
@@ -255,7 +289,7 @@ public sealed class BotWebhookService(
                 };
 
             case ExpenseConfirmState:
-                if (lowerText is not "si" and not "sí" and not "confirmar" and not "ok")
+                if (lowerText is not "1" and not "si" and not "sí" and not "confirmar" and not "ok")
                 {
                     await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
                     return new BotWebhookResponse
@@ -302,7 +336,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"Egreso registrado.\nFolio: {createdExpense.Id}\nMonto: ${createdExpense.AmountTotal:0.00} MXN\nDescripcion: {createdExpense.Description}\nFecha: {createdExpense.ExpenseDate:yyyy-MM-dd}"
+                    Message = $"Egreso registrado.\nFolio: {createdExpense.Id}\nMonto: ${createdExpense.AmountTotal:0.00} MXN\nDescripcion: {createdExpense.Description}\nFecha: {createdExpense.ExpenseDate:yyyy-MM-dd}\n\n{BuildMainMenu()}"
                 };
 
             default:
@@ -424,6 +458,16 @@ public sealed class BotWebhookService(
 
         linkCode = text[prefix.Length..].Trim();
         return !string.IsNullOrWhiteSpace(linkCode);
+    }
+
+    private static string BuildMainMenu()
+    {
+        return "Menu:\n1 Registrar egreso\n2 Ver ultimos egresos\n3 Ayuda\n4 Cancelar";
+    }
+
+    private static string BuildHelpMessage()
+    {
+        return "Ayuda:\n1 Registrar egreso\n2 Ver ultimos egresos\n3 Ayuda\n4 Cancelar\n\nSi eliges registrar, el bot te pedira monto, descripcion y confirmacion.";
     }
 
     private sealed class TelegramExpenseDraft
