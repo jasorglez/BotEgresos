@@ -49,7 +49,7 @@ public sealed class BotWebhookService(
         }
 
         var botLink = await dbContext.BotLinks
-            .AsNoTracking()
+            .Include(x => x.User)
             .FirstOrDefaultAsync(x => x.Channel == "TELEGRAM" && x.ExternalChatId == chatId && x.IsActive, cancellationToken);
 
         if (botLink is null)
@@ -157,7 +157,7 @@ public sealed class BotWebhookService(
                 Success = true,
                 Channel = "TELEGRAM",
                 ChatId = chatId,
-                Message = BuildMainMenu()
+                Message = BuildMainMenu(botLink.User)
             };
         }
 
@@ -174,7 +174,7 @@ public sealed class BotWebhookService(
                 Success = true,
                 Channel = "TELEGRAM",
                 ChatId = chatId,
-                Message = "❌ Operacion cancelada.\n\n" + BuildMainMenu()
+                Message = "❌ Operacion cancelada.\n\n" + BuildMainMenu(botLink.User)
             };
         }
 
@@ -212,8 +212,8 @@ public sealed class BotWebhookService(
                         Channel = "TELEGRAM",
                         ChatId = chatId,
                         Message = recentItems.Count == 0
-                            ? "📭 No hay egresos registrados todavia.\n\n" + BuildMainMenu()
-                            : "📚 Ultimos egresos:\n" + string.Join("\n", recentItems) + "\n\n" + BuildMainMenu()
+                            ? "📭 No hay egresos registrados todavia.\n\n" + BuildMainMenu(botLink.User)
+                            : "📚 Ultimos egresos:\n" + string.Join("\n", recentItems) + "\n\n" + BuildMainMenu(botLink.User)
                     };
                 }
 
@@ -225,7 +225,7 @@ public sealed class BotWebhookService(
                         Success = true,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = BuildHelpMessage()
+                        Message = BuildHelpMessage(botLink.User)
                     };
                 }
 
@@ -235,7 +235,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = BuildMainMenu()
+                    Message = BuildMainMenu(botLink.User)
                 };
 
             case ExpenseAmountState:
@@ -310,7 +310,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "⚠️ La sesion del egreso quedo incompleta.\n\n" + BuildMainMenu()
+                        Message = "⚠️ La sesion del egreso quedo incompleta.\n\n" + BuildMainMenu(botLink.User)
                     };
                 }
 
@@ -336,7 +336,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"🎉 Egreso registrado.\n\n🧾 Folio: {createdExpense.Id}\n💵 Monto: ${createdExpense.AmountTotal:0.00} MXN\n📝 Descripcion: {createdExpense.Description}\n📅 Fecha: {createdExpense.ExpenseDate:yyyy-MM-dd}\n\n{BuildMainMenu()}"
+                    Message = $"🎉 Egreso registrado.\n\n🧾 Folio: {createdExpense.Id}\n💵 Monto: ${createdExpense.AmountTotal:0.00} MXN\n📝 Descripcion: {createdExpense.Description}\n📅 Fecha: {createdExpense.ExpenseDate:yyyy-MM-dd}\n\n{BuildMainMenu(botLink.User)}"
                 };
 
             default:
@@ -347,7 +347,7 @@ public sealed class BotWebhookService(
                     Success = false,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = "🔄 La sesion se reinicio.\n\n" + BuildMainMenu()
+                    Message = "🔄 La sesion se reinicio.\n\n" + BuildMainMenu(botLink.User)
                 };
         }
     }
@@ -460,14 +460,20 @@ public sealed class BotWebhookService(
         return !string.IsNullOrWhiteSpace(linkCode);
     }
 
-    private static string BuildMainMenu()
+    private static string BuildMainMenu(AppUser user)
     {
-        return "✨ Menu principal\n\n1️⃣ o A Registrar egreso\n2️⃣ o B Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu";
+        return $"✨ Menu Principal:\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ o 🅰️ Registrar egreso\n2️⃣ o 🅱️ Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu";
     }
 
-    private static string BuildHelpMessage()
+    private static string BuildHelpMessage(AppUser user)
     {
-        return "🆘 Ayuda\n\n1️⃣ o A Registrar egreso\n2️⃣ o B Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu\n\nSi eliges registrar, el bot te pedira:\n• monto\n• descripcion\n• confirmacion\n\nSi te equivocas en cualquier paso, escribe 0, 4, cancelar o menu.";
+        return $"🆘 Ayuda\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ o 🅰️ Registrar egreso\n2️⃣ o 🅱️ Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu\n\nSi eliges registrar, el bot te pedira:\n• monto\n• descripcion\n• confirmacion\n\nSi te equivocas en cualquier paso, escribe 0, 4, cancelar o menu.";
+    }
+
+    private static string BuildUserDisplayName(AppUser user)
+    {
+        var fullName = $"{user.FirstName} {user.LastName}".Trim();
+        return string.IsNullOrWhiteSpace(fullName) ? user.Email : fullName;
     }
 
     private sealed class TelegramExpenseDraft
