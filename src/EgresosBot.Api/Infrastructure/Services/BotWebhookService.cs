@@ -528,12 +528,12 @@ public sealed class BotWebhookService(
 
     private static string BuildMainMenu(AppUser user)
     {
-        return $"--------------------\nMenu principal\n--------------------\nUsuario: {BuildUserDisplayName(user)}\n\n1 [A] Registrar egreso\n2 [B] Ver ultimos egresos\n3 [D] Ayuda\n4 [E] Cancelar operacion\n5 [G] Grafica por dia\n0 [F] Volver al menu";
+        return $"====================\nMENU PRINCIPAL\n====================\nUsuario: {BuildUserDisplayName(user)}\n\n[A] Registrar egreso\n[B] Ver ultimos egresos\n[D] Ayuda\n[E] Cancelar operacion\n[G] Grafica por dia\n[F] Volver al menu";
     }
 
     private static string BuildHelpMessage(AppUser user)
     {
-        return $"Ayuda\nUsuario: {BuildUserDisplayName(user)}\n\n1 [A] Registrar egreso\n2 [B] Ver ultimos egresos\n3 [D] Ayuda\n4 [E] Cancelar operacion\n5 [G] Grafica por dia\n0 [F] Volver al menu\n\nSi eliges registrar, el bot te pedira:\n- monto\n- descripcion\n- confirmacion\n\nSi te equivocas en cualquier paso, escribe 0, F, 4, E, cancelar o menu.";
+        return $"AYUDA\nUsuario: {BuildUserDisplayName(user)}\n\n[A] Registrar egreso\n[B] Ver ultimos egresos\n[D] Ayuda\n[E] Cancelar operacion\n[G] Grafica por dia\n[F] Volver al menu\n\nSi eliges registrar, el bot te pedira:\n- fecha\n- monto\n- descripcion\n- confirmacion\n\nSi te equivocas en cualquier paso, escribe F, E, cancelar o menu.";
     }
 
     private static string BuildUserDisplayName(AppUser user)
@@ -559,7 +559,7 @@ public sealed class BotWebhookService(
             .ToListAsync(cancellationToken);
 
         var totalsByDay = rawData.ToDictionary(x => x.Date, x => x.Total);
-        var series = Enumerable.Range(0, DailyChartDays)
+        var allDays = Enumerable.Range(0, DailyChartDays)
             .Select(offset => startDate.AddDays(offset))
             .Select(date => new
             {
@@ -568,16 +568,17 @@ public sealed class BotWebhookService(
             })
             .ToList();
 
-        if (series.All(x => x.Total <= 0))
+        if (allDays.All(x => x.Total <= 0))
         {
             return "Grafica por dia\n\nNo hay egresos registrados en los ultimos 7 dias.";
         }
 
+        var series = allDays.Where(x => x.Total > 0).ToList();
         var maxTotal = series.Max(x => x.Total);
         var lines = series.Select(item =>
         {
             var blocks = BuildTrafficBar(item.Total, maxTotal);
-            return $"{item.Date:MM-dd} {blocks} ${item.Total:0.00}";
+            return $"{item.Date:MM-dd} | {blocks} ${item.Total:0.00}";
         });
 
         return "Grafica por dia\n\n" + string.Join("\n", lines);
@@ -587,18 +588,11 @@ public sealed class BotWebhookService(
     {
         if (total <= 0 || maxTotal <= 0)
         {
-            return "[ ]";
+            return "-";
         }
 
-        var ratio = total / maxTotal;
-
-        return ratio switch
-        {
-            <= 0.25m => "[G]",
-            <= 0.50m => "[Y][Y]",
-            <= 0.75m => "[O][O][O]",
-            _ => "[R][R][R][R]"
-        };
+        var size = Math.Max(1, (int)Math.Round((total / maxTotal) * 10m, MidpointRounding.AwayFromZero));
+        return new string('#', size);
     }
 
     private sealed class TelegramExpenseDraft
