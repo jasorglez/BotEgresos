@@ -163,7 +163,7 @@ public sealed class BotWebhookService(
 
         var lowerText = normalizedText.ToLowerInvariant();
 
-        if (lowerText is "4" or "cancelar" or "salir")
+        if (lowerText is "0" or "4" or "cancelar" or "salir" or "menu" or "menú" or "inicio")
         {
             session.CurrentState = IdleState;
             draft = new TelegramExpenseDraft();
@@ -174,7 +174,7 @@ public sealed class BotWebhookService(
                 Success = true,
                 Channel = "TELEGRAM",
                 ChatId = chatId,
-                Message = "Operacion cancelada.\n\n" + BuildMainMenu()
+                Message = "❌ Operacion cancelada.\n\n" + BuildMainMenu()
             };
         }
 
@@ -192,7 +192,7 @@ public sealed class BotWebhookService(
                         Success = true,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "Vamos a registrar un egreso. Envia el monto. Ejemplo: 250.50"
+                        Message = "🧾 Vamos a registrar un egreso.\n\n💵 Envia el monto.\nEjemplo: 250.50\n\n↩️ Escribe 0 para volver al menu."
                     };
                 }
 
@@ -212,8 +212,8 @@ public sealed class BotWebhookService(
                         Channel = "TELEGRAM",
                         ChatId = chatId,
                         Message = recentItems.Count == 0
-                            ? "No hay egresos registrados todavia.\n\n" + BuildMainMenu()
-                            : "Ultimos egresos:\n" + string.Join("\n", recentItems) + "\n\n" + BuildMainMenu()
+                            ? "📭 No hay egresos registrados todavia.\n\n" + BuildMainMenu()
+                            : "📚 Ultimos egresos:\n" + string.Join("\n", recentItems) + "\n\n" + BuildMainMenu()
                     };
                 }
 
@@ -247,7 +247,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "No entendi el monto. Escribe un numero como 250 o 250.50"
+                        Message = "⚠️ No entendi el monto.\nEscribe un numero como 250 o 250.50\n\n↩️ Escribe 0 para volver al menu."
                     };
                 }
 
@@ -260,7 +260,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = "Ahora escribe la descripcion del egreso. Ejemplo: gasolina, papeleria, comida."
+                    Message = "✍️ Ahora escribe la descripcion del egreso.\nEjemplo: gasolina, papeleria, comida.\n\n↩️ Escribe 0 para volver al menu."
                 };
 
             case ExpenseDescriptionState:
@@ -272,7 +272,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "La descripcion no puede ir vacia. Escribe una descripcion corta."
+                        Message = "⚠️ La descripcion no puede ir vacia.\nEscribe una descripcion corta.\n\n↩️ Escribe 0 para volver al menu."
                     };
                 }
 
@@ -285,7 +285,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"Confirma el egreso:\nMonto: ${draft.AmountSubtotal:0.00} MXN\nDescripcion: {draft.Description}\n\nResponde si para guardar o cancelar."
+                    Message = $"✅ Confirma el egreso:\n\n💵 Monto: ${draft.AmountSubtotal:0.00} MXN\n📝 Descripcion: {draft.Description}\n\n1 Confirmar\n4 Cancelar\n↩️ 0 Volver al menu"
                 };
 
             case ExpenseConfirmState:
@@ -297,7 +297,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "Para guardar responde si. Si no quieres continuar, escribe cancelar."
+                        Message = "⚠️ Para guardar responde 1 o si.\nSi no quieres continuar, responde 4 o cancelar."
                     };
                 }
 
@@ -310,7 +310,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "La sesion del egreso quedo incompleta. Escribe registrar para empezar de nuevo."
+                        Message = "⚠️ La sesion del egreso quedo incompleta.\n\n" + BuildMainMenu()
                     };
                 }
 
@@ -336,7 +336,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"Egreso registrado.\nFolio: {createdExpense.Id}\nMonto: ${createdExpense.AmountTotal:0.00} MXN\nDescripcion: {createdExpense.Description}\nFecha: {createdExpense.ExpenseDate:yyyy-MM-dd}\n\n{BuildMainMenu()}"
+                    Message = $"🎉 Egreso registrado.\n\n🧾 Folio: {createdExpense.Id}\n💵 Monto: ${createdExpense.AmountTotal:0.00} MXN\n📝 Descripcion: {createdExpense.Description}\n📅 Fecha: {createdExpense.ExpenseDate:yyyy-MM-dd}\n\n{BuildMainMenu()}"
                 };
 
             default:
@@ -347,7 +347,7 @@ public sealed class BotWebhookService(
                     Success = false,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = "La sesion se reinicio. Escribe registrar para capturar un egreso."
+                    Message = "🔄 La sesion se reinicio.\n\n" + BuildMainMenu()
                 };
         }
     }
@@ -462,12 +462,12 @@ public sealed class BotWebhookService(
 
     private static string BuildMainMenu()
     {
-        return "Menu:\n1 Registrar egreso\n2 Ver ultimos egresos\n3 Ayuda\n4 Cancelar";
+        return "✨ Menu principal\n\n1️⃣ Registrar egreso\n2️⃣ Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu";
     }
 
     private static string BuildHelpMessage()
     {
-        return "Ayuda:\n1 Registrar egreso\n2 Ver ultimos egresos\n3 Ayuda\n4 Cancelar\n\nSi eliges registrar, el bot te pedira monto, descripcion y confirmacion.";
+        return "🆘 Ayuda\n\n1️⃣ Registrar egreso\n2️⃣ Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu\n\nSi eliges registrar, el bot te pedira:\n• monto\n• descripcion\n• confirmacion\n\nSi te equivocas en cualquier paso, escribe 0, 4, cancelar o menu.";
     }
 
     private sealed class TelegramExpenseDraft
