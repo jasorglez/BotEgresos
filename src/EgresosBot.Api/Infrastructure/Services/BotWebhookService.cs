@@ -159,7 +159,7 @@ public sealed class BotWebhookService(
                 Success = true,
                 Channel = "TELEGRAM",
                 ChatId = chatId,
-                Message = BuildMainMenu(botLink.User)
+                Message = BuildCommandHint()
             };
         }
 
@@ -176,7 +176,7 @@ public sealed class BotWebhookService(
                 Success = true,
                 Channel = "TELEGRAM",
                 ChatId = chatId,
-                Message = "Operacion cancelada.\n\n" + BuildMainMenu(botLink.User)
+                Message = "Operacion cancelada. Escribe A para registrar o D para ayuda."
             };
         }
 
@@ -194,7 +194,7 @@ public sealed class BotWebhookService(
                         Success = true,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "Registrar egreso.\n\nDeseas la fecha de hoy?\nPresiona S para usar hoy.\nPara otro dia, escribelo en formato AAAA-MM-DD o DD/MM/AAAA.\n\nEscribe 0 para volver al menu."
+                        Message = "Registrar egreso.\n\nDeseas la fecha de hoy?\nPresiona S para usar hoy.\nPara otro dia, escribelo en formato AAAA-MM-DD o DD/MM/AAAA.\n\nEscribe E para cancelar."
                     };
                 }
 
@@ -214,8 +214,8 @@ public sealed class BotWebhookService(
                         Channel = "TELEGRAM",
                         ChatId = chatId,
                         Message = recentItems.Count == 0
-                            ? "No hay egresos registrados todavia.\n\n" + BuildMainMenu(botLink.User)
-                            : "Ultimos egresos:\n" + string.Join("\n", recentItems) + "\n\n" + BuildMainMenu(botLink.User)
+                            ? "No hay egresos registrados todavia."
+                            : "Ultimos egresos:\n" + string.Join("\n", recentItems)
                     };
                 }
 
@@ -240,7 +240,7 @@ public sealed class BotWebhookService(
                         Success = true,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = chartMessage + "\n\n" + BuildMainMenu(botLink.User)
+                        Message = chartMessage
                     };
                 }
 
@@ -250,7 +250,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = BuildMainMenu(botLink.User)
+                    Message = BuildCommandHint()
                 };
 
             case ExpenseDateState:
@@ -262,7 +262,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "No entendi la fecha.\nPresiona S para usar hoy o escribe una fecha como 2026-05-11 o 11/05/2026.\n\nEscribe 0 para volver al menu."
+                        Message = "No entendi la fecha.\nPresiona S para usar hoy o escribe una fecha como 2026-05-11 o 11/05/2026.\n\nEscribe E para cancelar."
                     };
                 }
 
@@ -275,7 +275,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"Fecha seleccionada: {expenseDate:yyyy-MM-dd}\n\nAhora envia el monto.\nEjemplo: 250.50\n\nEscribe 0 para volver al menu."
+                    Message = $"Fecha seleccionada: {expenseDate:yyyy-MM-dd}\n\nAhora envia el monto.\nEjemplo: 250.50\n\nEscribe E para cancelar."
                 };
 
             case ExpenseAmountState:
@@ -287,7 +287,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "No entendi el monto.\nEscribe un numero como 250 o 250.50.\n\nEscribe 0 para volver al menu."
+                        Message = "No entendi el monto.\nEscribe un numero como 250 o 250.50.\n\nEscribe E para cancelar."
                     };
                 }
 
@@ -300,7 +300,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = "Ahora escribe la descripcion del egreso.\nEjemplo: gasolina, papeleria, comida.\n\nEscribe 0 para volver al menu."
+                    Message = "Ahora escribe la descripcion del egreso.\nEjemplo: gasolina, papeleria, comida.\n\nEscribe E para cancelar."
                 };
 
             case ExpenseDescriptionState:
@@ -312,7 +312,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "La descripcion no puede ir vacia.\nEscribe una descripcion corta.\n\nEscribe 0 para volver al menu."
+                        Message = "La descripcion no puede ir vacia.\nEscribe una descripcion corta.\n\nEscribe E para cancelar."
                     };
                 }
 
@@ -350,7 +350,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "La sesion del egreso quedo incompleta.\n\n" + BuildMainMenu(botLink.User)
+                        Message = "La sesion del egreso quedo incompleta. Escribe A para empezar otra vez."
                     };
                 }
 
@@ -376,7 +376,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"Egreso registrado.\n\nFolio: {createdExpense.Id}\nMonto: ${createdExpense.AmountTotal:0.00} MXN\nDescripcion: {createdExpense.Description}\nFecha: {createdExpense.ExpenseDate:yyyy-MM-dd}\n\n{BuildMainMenu(botLink.User)}"
+                    Message = $"Egreso registrado.\n\nFolio: {createdExpense.Id}\nMonto: ${createdExpense.AmountTotal:0.00} MXN\nDescripcion: {createdExpense.Description}\nFecha: {createdExpense.ExpenseDate:yyyy-MM-dd}"
                 };
 
             default:
@@ -387,7 +387,7 @@ public sealed class BotWebhookService(
                     Success = false,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = "La sesion se reinicio.\n\n" + BuildMainMenu(botLink.User)
+                    Message = "La sesion se reinicio. Escribe A para registrar o D para ayuda."
                 };
         }
     }
@@ -528,12 +528,17 @@ public sealed class BotWebhookService(
 
     private static string BuildMainMenu(AppUser user)
     {
-        return $"====================\nMENU PRINCIPAL\n====================\nUsuario: {BuildUserDisplayName(user)}\n\n[A] Registrar egreso\n[B] Ver ultimos egresos\n[D] Ayuda\n[E] Cancelar operacion\n[G] Grafica por dia\n[F] Volver al menu";
+        return BuildCommandHint();
     }
 
     private static string BuildHelpMessage(AppUser user)
     {
-        return $"AYUDA\nUsuario: {BuildUserDisplayName(user)}\n\n[A] Registrar egreso\n[B] Ver ultimos egresos\n[D] Ayuda\n[E] Cancelar operacion\n[G] Grafica por dia\n[F] Volver al menu\n\nSi eliges registrar, el bot te pedira:\n- fecha\n- monto\n- descripcion\n- confirmacion\n\nSi te equivocas en cualquier paso, escribe F, E, cancelar o menu.";
+        return $"AYUDA\nUsuario: {BuildUserDisplayName(user)}\n\nA Registrar egreso\nB Ver ultimos egresos\nD Ayuda\nE Cancelar operacion\nG Grafica por dia\nF Volver al inicio\n\nSi eliges registrar, el bot te pedira:\n- fecha\n- monto\n- descripcion\n- confirmacion";
+    }
+
+    private static string BuildCommandHint()
+    {
+        return "Comandos: A registrar | B ultimos | D ayuda | G grafica | E cancelar | F inicio";
     }
 
     private static string BuildUserDisplayName(AppUser user)
