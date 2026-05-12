@@ -1,0 +1,218 @@
+<main class="page-shell">
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">EgresosBot SaaS</p>
+      <h1>Controla egresos desde WhatsApp y Telegram. Paga en web, opera en chat.</h1>
+      <p class="lead">
+        El front solo hace lo importante: presentar el producto, registrar el tenant,
+        activar el servicio y dirigir al pago. La captura diaria vive en los bots.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#planes">Ver planes</a>
+        <a class="btn btn-secondary" href="#onboarding">Crear cuenta</a>
+      </div>
+
+      <div class="status-card" [class.ok]="healthStatus() === 'ok'" [class.error]="healthStatus() === 'error'">
+        <span class="status-dot"></span>
+        <div>
+          <strong>Estado de API</strong>
+          <p>{{ healthMessage() }}</p>
+        </div>
+        <button class="status-refresh" type="button" (click)="checkHealth()">Revalidar</button>
+      </div>
+    </div>
+
+    <div class="hero-panel">
+      <div class="panel-tag">Flujo previsto</div>
+      <ol>
+        <li>El usuario conoce el producto y elige plan.</li>
+        <li>Se registra el tenant en EgresosBot.</li>
+        <li>Se dirige al checkout o link de pago.</li>
+        <li>Elige canal y entra al bot con el codigo ya precargado.</li>
+      </ol>
+
+      <div class="payment-box" id="checkout">
+        <p class="payment-label">Zona de pago</p>
+        <h2>Link de pasarela listo para sustituirse</h2>
+        <p>
+          Los botones de plan pueden apuntar al checkout definitivo cuando definas Stripe,
+          Mercado Pago o la pasarela final.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="value-grid">
+    <article>
+      <h3>Operacion conversacional</h3>
+      <p>Los usuarios registran egresos en chat. El panel evita construir un ERP innecesario.</p>
+    </article>
+    <article>
+      <h3>Onboarding corto</h3>
+      <p>Alta de tenant, propietario y activacion. Eso es todo para arrancar.</p>
+    </article>
+    <article>
+      <h3>Cobro recurrente</h3>
+      <p>La experiencia web se concentra en vender, cobrar y mantener la suscripcion activa.</p>
+    </article>
+  </section>
+
+  <section class="plans-section" id="planes">
+    <div class="section-heading">
+      <p class="eyebrow">Planes</p>
+      <h2>Un frente pequeno para un servicio enfocado</h2>
+      <p>Estos paquetes son editables, pero ya dejan claro el modelo SaaS del producto.</p>
+    </div>
+
+    <div class="plans-grid">
+      @for (plan of plans; track plan.name) {
+        <article class="plan-card" [class.featured]="plan.featured">
+          <p class="plan-name">{{ plan.name }}</p>
+          <h3>{{ plan.price }}</h3>
+          <p class="plan-description">{{ plan.description }}</p>
+
+          <ul>
+            @for (feature of plan.features; track feature) {
+              <li>{{ feature }}</li>
+            }
+          </ul>
+
+          <a class="btn btn-primary" [href]="plan.paymentUrl">
+            {{ plan.name === 'Escala' ? 'Solicitar demo' : 'Ir al pago' }}
+          </a>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="onboarding-section" id="onboarding">
+    <div class="section-heading">
+      <p class="eyebrow">Onboarding</p>
+      <h2>Alta real contra tu backend</h2>
+      <p>
+        Este formulario usa el contrato real de <code>/api/onboarding/register</code> y crea el tenant propietario.
+      </p>
+    </div>
+
+    <div class="onboarding-layout">
+      <form class="onboarding-form" (ngSubmit)="submitOnboarding()">
+        <label>
+          <span>Empresa</span>
+          <input type="text" name="companyName" [(ngModel)]="onboardingForm.companyName" required />
+        </label>
+
+        <label>
+          <span>Identificador empresa / Slug</span>
+          <input type="text" name="slug" [(ngModel)]="onboardingForm.slug" placeholder="empresa-demo" />
+        </label>
+
+        <label>
+          <span>Correo</span>
+          <input type="email" name="email" [(ngModel)]="onboardingForm.email" required />
+        </label>
+
+        <label>
+          <span>Telefono</span>
+          <input type="text" name="phone" [(ngModel)]="onboardingForm.phone" />
+        </label>
+
+        <label>
+          <span>Nombre</span>
+          <input type="text" name="firstName" [(ngModel)]="onboardingForm.firstName" required />
+        </label>
+
+        <label>
+          <span>Apellido</span>
+          <input type="text" name="lastName" [(ngModel)]="onboardingForm.lastName" />
+        </label>
+
+        <label class="full-width">
+          <span>Password inicial</span>
+          <input type="password" name="password" [(ngModel)]="onboardingForm.password" required />
+        </label>
+
+        <div class="form-actions full-width">
+          <button class="btn btn-primary" type="submit" [disabled]="submitState() === 'submitting'">
+            {{ submitState() === 'submitting' ? 'Creando...' : 'Crear tenant' }}
+          </button>
+          <a class="btn btn-secondary" href="#checkout">Ver bloque de pago</a>
+        </div>
+
+        @if (submitMessage()) {
+          <p class="form-message" [class.error]="submitState() === 'error'" [class.success]="submitState() === 'success'">
+            {{ submitMessage() }}
+          </p>
+        }
+      </form>
+
+      <aside class="onboarding-notes">
+        <h3>Despues del alta</h3>
+        <ul>
+          <li>Redirigir al checkout de la pasarela.</li>
+          <li>Persistir el plan comprado y el estado de suscripcion.</li>
+          <li>Hacer login automatico del propietario.</li>
+          <li>Abrir Telegram o WhatsApp con el codigo ya escrito.</li>
+        </ul>
+
+        @if (createdTenant(); as tenant) {
+          <div class="tenant-result">
+            <p class="tenant-label">Tenant creado</p>
+            <strong>{{ tenant.companyName }}</strong>
+            <p>Slug: {{ tenant.slug }}</p>
+            <p>Email: {{ tenant.email }}</p>
+            <p>Rol: {{ tenant.roleCode }}</p>
+          </div>
+        }
+
+        @if (createdTenant()) {
+          <div class="activation-box">
+            <p class="tenant-label">Activacion guiada</p>
+            <h3>¿Donde deseas iniciar?</h3>
+            <p class="activation-copy">
+              El sistema prepara tu acceso y abre el bot con tu codigo de vinculacion listo para usarse.
+            </p>
+
+            <div class="activation-actions">
+              <button
+                class="btn btn-primary"
+                type="button"
+                (click)="connectChannel('TELEGRAM')"
+                [disabled]="activationState() === 'preparing' || activationState() === 'launching'">
+                Abrir Telegram
+              </button>
+              <button
+                class="btn btn-secondary"
+                type="button"
+                (click)="connectChannel('WHATSAPP')"
+                [disabled]="!whatsappEnabled || activationState() === 'preparing' || activationState() === 'launching'">
+                {{ whatsappEnabled ? 'Abrir WhatsApp' : 'WhatsApp pronto' }}
+              </button>
+            </div>
+
+            @if (activationMessage()) {
+              <p class="form-message" [class.error]="activationState() === 'error'" [class.success]="activationState() === 'ready'">
+                {{ activationMessage() }}
+              </p>
+            }
+
+            @if (channelLaunchState().telegramCode) {
+              <div class="channel-fallback">
+                <strong>Telegram de respaldo</strong>
+                <p>Bot: {{ 't.me/EgresosBi2OficialBot' }}</p>
+                <p>Codigo: {{ channelLaunchState().telegramCode }}</p>
+              </div>
+            }
+
+            @if (channelLaunchState().whatsappCode) {
+              <div class="channel-fallback">
+                <strong>WhatsApp de respaldo</strong>
+                <p>Codigo: {{ channelLaunchState().whatsappCode }}</p>
+              </div>
+            }
+          </div>
+        }
+      </aside>
+    </div>
+  </section>
+</main>
