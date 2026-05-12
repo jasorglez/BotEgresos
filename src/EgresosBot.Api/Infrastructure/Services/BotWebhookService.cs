@@ -246,6 +246,18 @@ public sealed class BotWebhookService(
                     };
                 }
 
+                if (lowerText is "5" or "g" or "grafica" or "grafica por dia")
+                {
+                    await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
+                    return new BotWebhookResponse
+                    {
+                        Success = true,
+                        Channel = "TELEGRAM",
+                        ChatId = chatId,
+                        Message = await BuildDailyExpenseChartAsync(botLink.TenantId, cancellationToken)
+                    };
+                }
+
 
                 await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
                 return new BotWebhookResponse
