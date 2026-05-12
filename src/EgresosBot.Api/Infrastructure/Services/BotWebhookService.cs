@@ -159,13 +159,13 @@ public sealed class BotWebhookService(
                 Success = true,
                 Channel = "TELEGRAM",
                 ChatId = chatId,
-                Message = BuildCommandHint()
+                Message = BuildCommandHint(botLink.User)
             };
         }
 
         var lowerText = normalizedText.ToLowerInvariant();
 
-        if (lowerText is "0" or "4" or "e" or "f" or "cancelar" or "salir" or "menu" or "inicio")
+        if (lowerText is "0" or "f" or "menu" or "inicio")
         {
             session.CurrentState = IdleState;
             draft = new TelegramExpenseDraft();
@@ -176,7 +176,22 @@ public sealed class BotWebhookService(
                 Success = true,
                 Channel = "TELEGRAM",
                 ChatId = chatId,
-                Message = "Operacion cancelada. Escribe A para registrar o D para ayuda."
+                Message = BuildMainMenu(botLink.User)
+            };
+        }
+
+        if (lowerText is "4" or "e" or "cancelar" or "salir")
+        {
+            session.CurrentState = IdleState;
+            draft = new TelegramExpenseDraft();
+            await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
+
+            return new BotWebhookResponse
+            {
+                Success = true,
+                Channel = "TELEGRAM",
+                ChatId = chatId,
+                Message = "Operacion cancelada.\n\n" + BuildMainMenu(botLink.User)
             };
         }
 
@@ -231,18 +246,6 @@ public sealed class BotWebhookService(
                     };
                 }
 
-                if (lowerText is "5" or "g" or "grafica" or "grafica dia" or "grafica por dia")
-                {
-                    var chartMessage = await BuildDailyExpenseChartAsync(botLink.TenantId, cancellationToken);
-                    await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
-                    return new BotWebhookResponse
-                    {
-                        Success = true,
-                        Channel = "TELEGRAM",
-                        ChatId = chatId,
-                        Message = chartMessage
-                    };
-                }
 
                 await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
                 return new BotWebhookResponse
@@ -250,7 +253,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = BuildCommandHint()
+                    Message = BuildCommandHint(botLink.User)
                 };
 
             case ExpenseDateState:
@@ -533,71 +536,18 @@ public sealed class BotWebhookService(
 
     private static string BuildHelpMessage(AppUser user)
     {
-        return $"AYUDA\nUsuario: {BuildUserDisplayName(user)}\n\nA Registrar egreso\nB Ver ultimos egresos\nD Ayuda\nE Cancelar operacion\nG Grafica por dia\nF Volver al inicio\n\nSi eliges registrar, el bot te pedira:\n- fecha\n- monto\n- descripcion\n- confirmacion";
+        return $"AYUDA\nUsuario: {BuildUserDisplayName(user)}\n\nA Registrar egreso\nB Ver ultimos egresos\nD Ayuda\nE Cancelar operacion\nF Volver al menu\n\nSi eliges registrar, el bot te pedira:\n- fecha\n- monto\n- descripcion\n- confirmacion";
     }
 
-    private static string BuildCommandHint()
+    private static string BuildCommandHint(AppUser user)
     {
-        return "Comandos: A registrar | B ultimos | D ayuda | G grafica | E cancelar | F inicio";
+        return "No entendi la opcion.\n\n" + BuildMainMenu(user);
     }
 
     private static string BuildUserDisplayName(AppUser user)
     {
         var fullName = $"{user.FirstName} {user.LastName}".Trim();
         return string.IsNullOrWhiteSpace(fullName) ? user.Email : fullName;
-    }
-
-    private async Task<string> BuildDailyExpenseChartAsync(int tenantId, CancellationToken cancellationToken)
-    {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var startDate = today.AddDays(-(DailyChartDays - 1));
-
-        var rawData = await dbContext.Expenses
-            .AsNoTracking()
-            .Where(x => x.TenantId == tenantId && x.ExpenseDate >= startDate)
-            .GroupBy(x => x.ExpenseDate)
-            .Select(g => new
-            {
-                Date = g.Key,
-                Total = g.Sum(x => x.AmountTotal)
-            })
-            .ToListAsync(cancellationToken);
-
-        var totalsByDay = rawData.ToDictionary(x => x.Date, x => x.Total);
-        var allDays = Enumerable.Range(0, DailyChartDays)
-            .Select(offset => startDate.AddDays(offset))
-            .Select(date => new
-            {
-                Date = date,
-                Total = totalsByDay.TryGetValue(date, out var total) ? total : 0m
-            })
-            .ToList();
-
-        if (allDays.All(x => x.Total <= 0))
-        {
-            return "Grafica por dia\n\nNo hay egresos registrados en los ultimos 7 dias.";
-        }
-
-        var series = allDays.Where(x => x.Total > 0).ToList();
-        var maxTotal = series.Max(x => x.Total);
-        var lines = series.Select(item =>
-        {
-            var blocks = BuildTrafficBar(item.Total, maxTotal);
-            return $"{item.Date:MM-dd} | {blocks} ${item.Total:0.00}";
-        });
-
-        return "Grafica por dia\n\n" + string.Join("\n", lines);
-    }
-
-    private static string BuildTrafficBar(decimal total, decimal maxTotal)
-    {
-        if (total <= 0 || maxTotal <= 0)
-        {
-            return "-";
-        }
-
-        var size = Math.Max(1, (int)Math.Round((total / maxTotal) * 10m, MidpointRounding.AwayFromZero));
-        return new string('#', size);
     }
 
     private sealed class TelegramExpenseDraft
@@ -609,4 +559,7 @@ public sealed class BotWebhookService(
         public DateTime? LastMessageAtUtc { get; set; }
     }
 }
+
+
+
 
