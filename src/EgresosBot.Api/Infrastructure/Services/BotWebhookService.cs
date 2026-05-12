@@ -163,7 +163,7 @@ public sealed class BotWebhookService(
 
         var lowerText = normalizedText.ToLowerInvariant();
 
-        if (lowerText is "0" or "4" or "cancelar" or "salir" or "menu" or "menú" or "inicio")
+        if (lowerText is "0" or "4" or "e" or "f" or "cancelar" or "salir" or "menu" or "menú" or "inicio")
         {
             session.CurrentState = IdleState;
             draft = new TelegramExpenseDraft();
@@ -196,7 +196,7 @@ public sealed class BotWebhookService(
                     };
                 }
 
-                if (lowerText is "2" or "ultimos" or "últimos" or "ver")
+                if (lowerText is "2" or "b" or "ultimos" or "últimos" or "ver")
                 {
                     var recentExpenses = await expenseService.GetExpensesAsync(botLink.TenantId, cancellationToken);
                     var recentItems = recentExpenses
@@ -217,7 +217,7 @@ public sealed class BotWebhookService(
                     };
                 }
 
-                if (lowerText is "3" or "ayuda" or "help")
+                if (lowerText is "3" or "d" or "ayuda" or "help")
                 {
                     await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
                     return new BotWebhookResponse
@@ -289,7 +289,7 @@ public sealed class BotWebhookService(
                 };
 
             case ExpenseConfirmState:
-                if (lowerText is not "1" and not "si" and not "sí" and not "confirmar" and not "ok")
+                if (lowerText is not "1" and not "a" and not "si" and not "sí" and not "confirmar" and not "ok")
                 {
                     await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
                     return new BotWebhookResponse
@@ -297,7 +297,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "⚠️ Para guardar responde 1 o si.\nSi no quieres continuar, responde 4 o cancelar."
+                        Message = "⚠️ Para guardar responde 1, A o si.\nSi no quieres continuar, responde 4, E o cancelar."
                     };
                 }
 
@@ -462,12 +462,12 @@ public sealed class BotWebhookService(
 
     private static string BuildMainMenu(AppUser user)
     {
-        return $"✨ Menu Principal:\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ o 🅰️ Registrar egreso\n2️⃣ o 🅱️ Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu";
+        return $"✨ Menu Principal:\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ o 🅰️ Registrar egreso\n2️⃣ o 🅱️ Ver ultimos egresos\n3️⃣ o 🅳 Ayuda\n4️⃣ o 🅴 Cancelar operacion\n0️⃣ o 🅵 Volver al menu";
     }
 
     private static string BuildHelpMessage(AppUser user)
     {
-        return $"🆘 Ayuda\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ o 🅰️ Registrar egreso\n2️⃣ o 🅱️ Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu\n\nSi eliges registrar, el bot te pedira:\n• monto\n• descripcion\n• confirmacion\n\nSi te equivocas en cualquier paso, escribe 0, 4, cancelar o menu.";
+        return $"🆘 Ayuda\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ o 🅰️ Registrar egreso\n2️⃣ o 🅱️ Ver ultimos egresos\n3️⃣ o 🅳 Ayuda\n4️⃣ o 🅴 Cancelar operacion\n0️⃣ o 🅵 Volver al menu\n\nSi eliges registrar, el bot te pedira:\n• monto\n• descripcion\n• confirmacion\n\nSi te equivocas en cualquier paso, escribe 0, F, 4, E, cancelar o menu.";
     }
 
     private static string BuildUserDisplayName(AppUser user)
