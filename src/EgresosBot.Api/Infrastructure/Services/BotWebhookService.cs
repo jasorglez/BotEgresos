@@ -462,12 +462,12 @@ public sealed class BotWebhookService(
 
     private static string BuildMainMenu(AppUser user)
     {
-        return $"✨ Menu Principal:\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ o 🅰️ Registrar egreso\n2️⃣ o 🅱️ Ver ultimos egresos\n3️⃣ o 🅳 Ayuda\n4️⃣ o 🅴 Cancelar operacion\n0️⃣ o 🅵 Volver al menu";
+        return $"╔══════════════════╗\n║ ✨ Menú principal ║\n╚══════════════════╝\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ [A] Registrar egreso\n2️⃣ [B] Ver últimos egresos\n3️⃣ [D] Ayuda\n4️⃣ [E] Cancelar operación\n0️⃣ [F] Volver al menú";
     }
 
     private static string BuildHelpMessage(AppUser user)
     {
-        return $"🆘 Ayuda\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ o 🅰️ Registrar egreso\n2️⃣ o 🅱️ Ver ultimos egresos\n3️⃣ o 🅳 Ayuda\n4️⃣ o 🅴 Cancelar operacion\n0️⃣ o 🅵 Volver al menu\n\nSi eliges registrar, el bot te pedira:\n• monto\n• descripcion\n• confirmacion\n\nSi te equivocas en cualquier paso, escribe 0, F, 4, E, cancelar o menu.";
+        return $"🆘 Ayuda\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ [A] Registrar egreso\n2️⃣ [B] Ver últimos egresos\n3️⃣ [D] Ayuda\n4️⃣ [E] Cancelar operación\n0️⃣ [F] Volver al menú\n\nSi eliges registrar, el bot te pedirá:\n• monto\n• descripción\n• confirmación\n\nSi te equivocas en cualquier paso, escribe 0, F, 4, E, cancelar o menu.";
     }
 
     private static string BuildUserDisplayName(AppUser user)
