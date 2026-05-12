@@ -462,12 +462,12 @@ public sealed class BotWebhookService(
 
     private static string BuildMainMenu()
     {
-        return "✨ Menu principal\n\n1️⃣ Registrar egreso\n2️⃣ Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu";
+        return "✨ Menu principal\n\n1️⃣ o A Registrar egreso\n2️⃣ o B Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu";
     }
 
     private static string BuildHelpMessage()
     {
-        return "🆘 Ayuda\n\n1️⃣ Registrar egreso\n2️⃣ Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu\n\nSi eliges registrar, el bot te pedira:\n• monto\n• descripcion\n• confirmacion\n\nSi te equivocas en cualquier paso, escribe 0, 4, cancelar o menu.";
+        return "🆘 Ayuda\n\n1️⃣ o A Registrar egreso\n2️⃣ o B Ver ultimos egresos\n3️⃣ Ayuda\n4️⃣ Cancelar operacion\n0️⃣ Volver al menu\n\nSi eliges registrar, el bot te pedira:\n• monto\n• descripcion\n• confirmacion\n\nSi te equivocas en cualquier paso, escribe 0, 4, cancelar o menu.";
     }
 
     private sealed class TelegramExpenseDraft
