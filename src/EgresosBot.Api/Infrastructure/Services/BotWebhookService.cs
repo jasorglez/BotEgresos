@@ -528,7 +528,7 @@ public sealed class BotWebhookService(
 
     private static string BuildMainMenu(AppUser user)
     {
-        return BuildCommandHint();
+        return $"╔══════════════════╗\n║ ✨ Menú principal ║\n╚══════════════════╝\nUsuario: {BuildUserDisplayName(user)}\n\n1️⃣ [A] Registrar egreso\n2️⃣ [B] Ver últimos egresos\n3️⃣ [D] Ayuda\n4️⃣ [E] Cancelar operación\n0️⃣ [F] Volver al menú";
     }
 
     private static string BuildHelpMessage(AppUser user)
