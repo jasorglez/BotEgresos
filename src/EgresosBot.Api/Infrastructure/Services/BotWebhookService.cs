@@ -165,7 +165,7 @@ public sealed class BotWebhookService(
 
         var lowerText = normalizedText.ToLowerInvariant();
 
-        if (lowerText is "0" or "4" or "e" or "f" or "cancelar" or "salir" or "menu" or "menÃº" or "inicio")
+        if (lowerText is "0" or "4" or "e" or "f" or "cancelar" or "salir" or "menu" or "inicio")
         {
             session.CurrentState = IdleState;
             draft = new TelegramExpenseDraft();
@@ -176,7 +176,7 @@ public sealed class BotWebhookService(
                 Success = true,
                 Channel = "TELEGRAM",
                 ChatId = chatId,
-                Message = "âŒ Operacion cancelada.\n\n" + BuildMainMenu(botLink.User)
+                Message = "Operacion cancelada.\n\n" + BuildMainMenu(botLink.User)
             };
         }
 
@@ -194,11 +194,11 @@ public sealed class BotWebhookService(
                         Success = true,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "ðŸ§¾ Vamos a registrar un egreso.\n\nðŸ“… Â¿Deseas la fecha de hoy?\nPresiona S para usar hoy.\nPara otro dÃ­a, escrÃ­belo en formato AAAA-MM-DD o DD/MM/AAAA.\n\nâ†©ï¸ Escribe 0 para volver al menÃº."
+                        Message = "Registrar egreso.\n\nDeseas la fecha de hoy?\nPresiona S para usar hoy.\nPara otro dia, escribelo en formato AAAA-MM-DD o DD/MM/AAAA.\n\nEscribe 0 para volver al menu."
                     };
                 }
 
-                if (lowerText is "2" or "b" or "ultimos" or "Ãºltimos" or "ver")
+                if (lowerText is "2" or "b" or "ultimos" or "ver")
                 {
                     var recentExpenses = await expenseService.GetExpensesAsync(botLink.TenantId, cancellationToken);
                     var recentItems = recentExpenses
@@ -214,8 +214,8 @@ public sealed class BotWebhookService(
                         Channel = "TELEGRAM",
                         ChatId = chatId,
                         Message = recentItems.Count == 0
-                            ? "ðŸ“­ No hay egresos registrados todavia.\n\n" + BuildMainMenu(botLink.User)
-                            : "ðŸ“š Ultimos egresos:\n" + string.Join("\n", recentItems) + "\n\n" + BuildMainMenu(botLink.User)
+                            ? "No hay egresos registrados todavia.\n\n" + BuildMainMenu(botLink.User)
+                            : "Ultimos egresos:\n" + string.Join("\n", recentItems) + "\n\n" + BuildMainMenu(botLink.User)
                     };
                 }
 
@@ -231,7 +231,7 @@ public sealed class BotWebhookService(
                     };
                 }
 
-                if (lowerText is "5" or "g" or "grafica" or "grÃ¡fica" or "grafica dia" or "grafica por dia" or "grÃ¡fica por dÃ­a")
+                if (lowerText is "5" or "g" or "grafica" or "grafica dia" or "grafica por dia")
                 {
                     var chartMessage = await BuildDailyExpenseChartAsync(botLink.TenantId, cancellationToken);
                     await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
@@ -262,7 +262,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "âš ï¸ No entendÃ­ la fecha.\nPresiona S para usar hoy o escribe una fecha como 2026-05-11 o 11/05/2026.\n\nâ†©ï¸ Escribe 0 para volver al menÃº."
+                        Message = "No entendi la fecha.\nPresiona S para usar hoy o escribe una fecha como 2026-05-11 o 11/05/2026.\n\nEscribe 0 para volver al menu."
                     };
                 }
 
@@ -275,7 +275,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"ðŸ“… Fecha seleccionada: {expenseDate:yyyy-MM-dd}\n\nðŸ’µ Ahora envÃ­a el monto.\nEjemplo: 250.50\n\nâ†©ï¸ Escribe 0 para volver al menÃº."
+                    Message = $"Fecha seleccionada: {expenseDate:yyyy-MM-dd}\n\nAhora envia el monto.\nEjemplo: 250.50\n\nEscribe 0 para volver al menu."
                 };
 
             case ExpenseAmountState:
@@ -287,7 +287,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "âš ï¸ No entendi el monto.\nEscribe un numero como 250 o 250.50\n\nâ†©ï¸ Escribe 0 para volver al menu."
+                        Message = "No entendi el monto.\nEscribe un numero como 250 o 250.50.\n\nEscribe 0 para volver al menu."
                     };
                 }
 
@@ -300,7 +300,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = "âœï¸ Ahora escribe la descripcion del egreso.\nEjemplo: gasolina, papeleria, comida.\n\nâ†©ï¸ Escribe 0 para volver al menu."
+                    Message = "Ahora escribe la descripcion del egreso.\nEjemplo: gasolina, papeleria, comida.\n\nEscribe 0 para volver al menu."
                 };
 
             case ExpenseDescriptionState:
@@ -312,7 +312,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "âš ï¸ La descripcion no puede ir vacia.\nEscribe una descripcion corta.\n\nâ†©ï¸ Escribe 0 para volver al menu."
+                        Message = "La descripcion no puede ir vacia.\nEscribe una descripcion corta.\n\nEscribe 0 para volver al menu."
                     };
                 }
 
@@ -325,11 +325,11 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"âœ… Confirma el egreso:\n\nðŸ“… Fecha: {draft.ExpenseDate:yyyy-MM-dd}\nðŸ’µ Monto: ${draft.AmountSubtotal:0.00} MXN\nðŸ“ Descripcion: {draft.Description}\n\n1 Confirmar\n4 Cancelar\nâ†©ï¸ 0 Volver al menÃº"
+                    Message = $"Confirma el egreso:\n\nFecha: {draft.ExpenseDate:yyyy-MM-dd}\nMonto: ${draft.AmountSubtotal:0.00} MXN\nDescripcion: {draft.Description}\n\n1 Confirmar\n4 Cancelar\n0 Volver al menu"
                 };
 
             case ExpenseConfirmState:
-                if (lowerText is not "1" and not "a" and not "si" and not "sÃ­" and not "confirmar" and not "ok")
+                if (lowerText is not "1" and not "a" and not "si" and not "confirmar" and not "ok")
                 {
                     await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
                     return new BotWebhookResponse
@@ -337,7 +337,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "âš ï¸ Para guardar responde 1, A o si.\nSi no quieres continuar, responde 4, E o cancelar."
+                        Message = "Para guardar responde 1, A o si.\nSi no quieres continuar, responde 4, E o cancelar."
                     };
                 }
 
@@ -350,7 +350,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "âš ï¸ La sesion del egreso quedo incompleta.\n\n" + BuildMainMenu(botLink.User)
+                        Message = "La sesion del egreso quedo incompleta.\n\n" + BuildMainMenu(botLink.User)
                     };
                 }
 
@@ -376,7 +376,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"ðŸŽ‰ Egreso registrado.\n\nðŸ§¾ Folio: {createdExpense.Id}\nðŸ’µ Monto: ${createdExpense.AmountTotal:0.00} MXN\nðŸ“ Descripcion: {createdExpense.Description}\nðŸ“… Fecha: {createdExpense.ExpenseDate:yyyy-MM-dd}\n\n{BuildMainMenu(botLink.User)}"
+                    Message = $"Egreso registrado.\n\nFolio: {createdExpense.Id}\nMonto: ${createdExpense.AmountTotal:0.00} MXN\nDescripcion: {createdExpense.Description}\nFecha: {createdExpense.ExpenseDate:yyyy-MM-dd}\n\n{BuildMainMenu(botLink.User)}"
                 };
 
             default:
@@ -387,7 +387,7 @@ public sealed class BotWebhookService(
                     Success = false,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = "ðŸ”„ La sesion se reinicio.\n\n" + BuildMainMenu(botLink.User)
+                    Message = "La sesion se reinicio.\n\n" + BuildMainMenu(botLink.User)
                 };
         }
     }
@@ -470,7 +470,7 @@ public sealed class BotWebhookService(
 
         if (normalized.Equals("s", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("si", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("sÃ­", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("si", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("hoy", StringComparison.OrdinalIgnoreCase))
         {
             expenseDate = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -528,12 +528,12 @@ public sealed class BotWebhookService(
 
     private static string BuildMainMenu(AppUser user)
     {
-        return $"â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—\nâ•‘ âœ¨ MenÃº principal â•‘\nâ•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\nðŸ‘¤ Usuario: {BuildUserDisplayName(user)}\n\n1ï¸âƒ£ [A] Registrar egreso\n2ï¸âƒ£ [B] Ver Ãºltimos egresos\n3ï¸âƒ£ [D] Ayuda\n4ï¸âƒ£ [E] Cancelar operaciÃ³n\n5ï¸âƒ£ [G] GrÃ¡fica por dÃ­a\n0ï¸âƒ£ [F] Volver al menÃº";
+        return $"--------------------\nMenu principal\n--------------------\nUsuario: {BuildUserDisplayName(user)}\n\n1 [A] Registrar egreso\n2 [B] Ver ultimos egresos\n3 [D] Ayuda\n4 [E] Cancelar operacion\n5 [G] Grafica por dia\n0 [F] Volver al menu";
     }
 
     private static string BuildHelpMessage(AppUser user)
     {
-        return $"ðŸ†˜ Ayuda\nðŸ‘¤ Usuario: {BuildUserDisplayName(user)}\n\n1ï¸âƒ£ [A] Registrar egreso\n2ï¸âƒ£ [B] Ver Ãºltimos egresos\n3ï¸âƒ£ [D] Ayuda\n4ï¸âƒ£ [E] Cancelar operaciÃ³n\n5ï¸âƒ£ [G] GrÃ¡fica por dÃ­a\n0ï¸âƒ£ [F] Volver al menÃº\n\nSi eliges registrar, el bot te pedirÃ¡:\nâ€¢ monto\nâ€¢ descripciÃ³n\nâ€¢ confirmaciÃ³n\n\nSi te equivocas en cualquier paso, escribe 0, F, 4, E, cancelar o menu.";
+        return $"Ayuda\nUsuario: {BuildUserDisplayName(user)}\n\n1 [A] Registrar egreso\n2 [B] Ver ultimos egresos\n3 [D] Ayuda\n4 [E] Cancelar operacion\n5 [G] Grafica por dia\n0 [F] Volver al menu\n\nSi eliges registrar, el bot te pedira:\n- monto\n- descripcion\n- confirmacion\n\nSi te equivocas en cualquier paso, escribe 0, F, 4, E, cancelar o menu.";
     }
 
     private static string BuildUserDisplayName(AppUser user)
@@ -570,7 +570,7 @@ public sealed class BotWebhookService(
 
         if (series.All(x => x.Total <= 0))
         {
-            return "📊 Gráfica por día\n\nNo hay egresos registrados en los últimos 7 días.";
+            return "Grafica por dia\n\nNo hay egresos registrados en los ultimos 7 dias.";
         }
 
         var maxTotal = series.Max(x => x.Total);
@@ -580,24 +580,24 @@ public sealed class BotWebhookService(
             return $"{item.Date:MM-dd} {blocks} ${item.Total:0.00}";
         });
 
-        return "📊 Gráfica por día\n\n" + string.Join("\n", lines);
+        return "Grafica por dia\n\n" + string.Join("\n", lines);
     }
 
     private static string BuildTrafficBar(decimal total, decimal maxTotal)
     {
         if (total <= 0 || maxTotal <= 0)
         {
-            return "⬜";
+            return "[ ]";
         }
 
         var ratio = total / maxTotal;
 
         return ratio switch
         {
-            <= 0.25m => "🟩",
-            <= 0.50m => "🟨🟨",
-            <= 0.75m => "🟧🟧🟧",
-            _ => "🟥🟥🟥🟥"
+            <= 0.25m => "[G]",
+            <= 0.50m => "[Y][Y]",
+            <= 0.75m => "[O][O][O]",
+            _ => "[R][R][R][R]"
         };
     }
 
