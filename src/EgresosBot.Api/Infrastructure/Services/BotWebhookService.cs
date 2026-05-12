@@ -1,4 +1,4 @@
-using EgresosBot.Api.Application.Abstractions;
+﻿using EgresosBot.Api.Application.Abstractions;
 using EgresosBot.Api.Application.Models.BotLinks;
 using EgresosBot.Api.Application.Models.Expenses;
 using EgresosBot.Api.Application.Models.Webhooks;
@@ -165,7 +165,7 @@ public sealed class BotWebhookService(
 
         var lowerText = normalizedText.ToLowerInvariant();
 
-        if (lowerText is "0" or "4" or "e" or "f" or "cancelar" or "salir" or "menu" or "menú" or "inicio")
+        if (lowerText is "0" or "4" or "e" or "f" or "cancelar" or "salir" or "menu" or "menÃº" or "inicio")
         {
             session.CurrentState = IdleState;
             draft = new TelegramExpenseDraft();
@@ -176,7 +176,7 @@ public sealed class BotWebhookService(
                 Success = true,
                 Channel = "TELEGRAM",
                 ChatId = chatId,
-                Message = "❌ Operacion cancelada.\n\n" + BuildMainMenu(botLink.User)
+                Message = "âŒ Operacion cancelada.\n\n" + BuildMainMenu(botLink.User)
             };
         }
 
@@ -194,11 +194,11 @@ public sealed class BotWebhookService(
                         Success = true,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "🧾 Vamos a registrar un egreso.\n\n📅 ¿Deseas la fecha de hoy?\nPresiona S para usar hoy.\nPara otro día, escríbelo en formato AAAA-MM-DD o DD/MM/AAAA.\n\n↩️ Escribe 0 para volver al menú."
+                        Message = "ðŸ§¾ Vamos a registrar un egreso.\n\nðŸ“… Â¿Deseas la fecha de hoy?\nPresiona S para usar hoy.\nPara otro dÃ­a, escrÃ­belo en formato AAAA-MM-DD o DD/MM/AAAA.\n\nâ†©ï¸ Escribe 0 para volver al menÃº."
                     };
                 }
 
-                if (lowerText is "2" or "b" or "ultimos" or "últimos" or "ver")
+                if (lowerText is "2" or "b" or "ultimos" or "Ãºltimos" or "ver")
                 {
                     var recentExpenses = await expenseService.GetExpensesAsync(botLink.TenantId, cancellationToken);
                     var recentItems = recentExpenses
@@ -214,8 +214,8 @@ public sealed class BotWebhookService(
                         Channel = "TELEGRAM",
                         ChatId = chatId,
                         Message = recentItems.Count == 0
-                            ? "📭 No hay egresos registrados todavia.\n\n" + BuildMainMenu(botLink.User)
-                            : "📚 Ultimos egresos:\n" + string.Join("\n", recentItems) + "\n\n" + BuildMainMenu(botLink.User)
+                            ? "ðŸ“­ No hay egresos registrados todavia.\n\n" + BuildMainMenu(botLink.User)
+                            : "ðŸ“š Ultimos egresos:\n" + string.Join("\n", recentItems) + "\n\n" + BuildMainMenu(botLink.User)
                     };
                 }
 
@@ -231,7 +231,7 @@ public sealed class BotWebhookService(
                     };
                 }
 
-                if (lowerText is "5" or "g" or "grafica" or "gráfica" or "grafica dia" or "grafica por dia" or "gráfica por día")
+                if (lowerText is "5" or "g" or "grafica" or "grÃ¡fica" or "grafica dia" or "grafica por dia" or "grÃ¡fica por dÃ­a")
                 {
                     var chartMessage = await BuildDailyExpenseChartAsync(botLink.TenantId, cancellationToken);
                     await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
@@ -262,7 +262,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "⚠️ No entendí la fecha.\nPresiona S para usar hoy o escribe una fecha como 2026-05-11 o 11/05/2026.\n\n↩️ Escribe 0 para volver al menú."
+                        Message = "âš ï¸ No entendÃ­ la fecha.\nPresiona S para usar hoy o escribe una fecha como 2026-05-11 o 11/05/2026.\n\nâ†©ï¸ Escribe 0 para volver al menÃº."
                     };
                 }
 
@@ -275,7 +275,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"📅 Fecha seleccionada: {expenseDate:yyyy-MM-dd}\n\n💵 Ahora envía el monto.\nEjemplo: 250.50\n\n↩️ Escribe 0 para volver al menú."
+                    Message = $"ðŸ“… Fecha seleccionada: {expenseDate:yyyy-MM-dd}\n\nðŸ’µ Ahora envÃ­a el monto.\nEjemplo: 250.50\n\nâ†©ï¸ Escribe 0 para volver al menÃº."
                 };
 
             case ExpenseAmountState:
@@ -287,7 +287,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "⚠️ No entendi el monto.\nEscribe un numero como 250 o 250.50\n\n↩️ Escribe 0 para volver al menu."
+                        Message = "âš ï¸ No entendi el monto.\nEscribe un numero como 250 o 250.50\n\nâ†©ï¸ Escribe 0 para volver al menu."
                     };
                 }
 
@@ -300,7 +300,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = "✍️ Ahora escribe la descripcion del egreso.\nEjemplo: gasolina, papeleria, comida.\n\n↩️ Escribe 0 para volver al menu."
+                    Message = "âœï¸ Ahora escribe la descripcion del egreso.\nEjemplo: gasolina, papeleria, comida.\n\nâ†©ï¸ Escribe 0 para volver al menu."
                 };
 
             case ExpenseDescriptionState:
@@ -312,7 +312,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "⚠️ La descripcion no puede ir vacia.\nEscribe una descripcion corta.\n\n↩️ Escribe 0 para volver al menu."
+                        Message = "âš ï¸ La descripcion no puede ir vacia.\nEscribe una descripcion corta.\n\nâ†©ï¸ Escribe 0 para volver al menu."
                     };
                 }
 
@@ -325,11 +325,11 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"✅ Confirma el egreso:\n\n📅 Fecha: {draft.ExpenseDate:yyyy-MM-dd}\n💵 Monto: ${draft.AmountSubtotal:0.00} MXN\n📝 Descripcion: {draft.Description}\n\n1 Confirmar\n4 Cancelar\n↩️ 0 Volver al menú"
+                    Message = $"âœ… Confirma el egreso:\n\nðŸ“… Fecha: {draft.ExpenseDate:yyyy-MM-dd}\nðŸ’µ Monto: ${draft.AmountSubtotal:0.00} MXN\nðŸ“ Descripcion: {draft.Description}\n\n1 Confirmar\n4 Cancelar\nâ†©ï¸ 0 Volver al menÃº"
                 };
 
             case ExpenseConfirmState:
-                if (lowerText is not "1" and not "a" and not "si" and not "sí" and not "confirmar" and not "ok")
+                if (lowerText is not "1" and not "a" and not "si" and not "sÃ­" and not "confirmar" and not "ok")
                 {
                     await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
                     return new BotWebhookResponse
@@ -337,7 +337,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "⚠️ Para guardar responde 1, A o si.\nSi no quieres continuar, responde 4, E o cancelar."
+                        Message = "âš ï¸ Para guardar responde 1, A o si.\nSi no quieres continuar, responde 4, E o cancelar."
                     };
                 }
 
@@ -350,7 +350,7 @@ public sealed class BotWebhookService(
                         Success = false,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "⚠️ La sesion del egreso quedo incompleta.\n\n" + BuildMainMenu(botLink.User)
+                        Message = "âš ï¸ La sesion del egreso quedo incompleta.\n\n" + BuildMainMenu(botLink.User)
                     };
                 }
 
@@ -376,7 +376,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"🎉 Egreso registrado.\n\n🧾 Folio: {createdExpense.Id}\n💵 Monto: ${createdExpense.AmountTotal:0.00} MXN\n📝 Descripcion: {createdExpense.Description}\n📅 Fecha: {createdExpense.ExpenseDate:yyyy-MM-dd}\n\n{BuildMainMenu(botLink.User)}"
+                    Message = $"ðŸŽ‰ Egreso registrado.\n\nðŸ§¾ Folio: {createdExpense.Id}\nðŸ’µ Monto: ${createdExpense.AmountTotal:0.00} MXN\nðŸ“ Descripcion: {createdExpense.Description}\nðŸ“… Fecha: {createdExpense.ExpenseDate:yyyy-MM-dd}\n\n{BuildMainMenu(botLink.User)}"
                 };
 
             default:
@@ -387,7 +387,7 @@ public sealed class BotWebhookService(
                     Success = false,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = "🔄 La sesion se reinicio.\n\n" + BuildMainMenu(botLink.User)
+                    Message = "ðŸ”„ La sesion se reinicio.\n\n" + BuildMainMenu(botLink.User)
                 };
         }
     }
@@ -470,7 +470,7 @@ public sealed class BotWebhookService(
 
         if (normalized.Equals("s", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("si", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("sí", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("sÃ­", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("hoy", StringComparison.OrdinalIgnoreCase))
         {
             expenseDate = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -528,12 +528,12 @@ public sealed class BotWebhookService(
 
     private static string BuildMainMenu(AppUser user)
     {
-        return $"╔══════════════════╗\n║ ✨ Menú principal ║\n╚══════════════════╝\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ [A] Registrar egreso\n2️⃣ [B] Ver últimos egresos\n3️⃣ [D] Ayuda\n4️⃣ [E] Cancelar operación\n5️⃣ [G] Gráfica por día\n0️⃣ [F] Volver al menú";
+        return $"â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—\nâ•‘ âœ¨ MenÃº principal â•‘\nâ•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\nðŸ‘¤ Usuario: {BuildUserDisplayName(user)}\n\n1ï¸âƒ£ [A] Registrar egreso\n2ï¸âƒ£ [B] Ver Ãºltimos egresos\n3ï¸âƒ£ [D] Ayuda\n4ï¸âƒ£ [E] Cancelar operaciÃ³n\n5ï¸âƒ£ [G] GrÃ¡fica por dÃ­a\n0ï¸âƒ£ [F] Volver al menÃº";
     }
 
     private static string BuildHelpMessage(AppUser user)
     {
-        return $"🆘 Ayuda\n👤 Usuario: {BuildUserDisplayName(user)}\n\n1️⃣ [A] Registrar egreso\n2️⃣ [B] Ver últimos egresos\n3️⃣ [D] Ayuda\n4️⃣ [E] Cancelar operación\n5️⃣ [G] Gráfica por día\n0️⃣ [F] Volver al menú\n\nSi eliges registrar, el bot te pedirá:\n• monto\n• descripción\n• confirmación\n\nSi te equivocas en cualquier paso, escribe 0, F, 4, E, cancelar o menu.";
+        return $"ðŸ†˜ Ayuda\nðŸ‘¤ Usuario: {BuildUserDisplayName(user)}\n\n1ï¸âƒ£ [A] Registrar egreso\n2ï¸âƒ£ [B] Ver Ãºltimos egresos\n3ï¸âƒ£ [D] Ayuda\n4ï¸âƒ£ [E] Cancelar operaciÃ³n\n5ï¸âƒ£ [G] GrÃ¡fica por dÃ­a\n0ï¸âƒ£ [F] Volver al menÃº\n\nSi eliges registrar, el bot te pedirÃ¡:\nâ€¢ monto\nâ€¢ descripciÃ³n\nâ€¢ confirmaciÃ³n\n\nSi te equivocas en cualquier paso, escribe 0, F, 4, E, cancelar o menu.";
     }
 
     private static string BuildUserDisplayName(AppUser user)
@@ -576,14 +576,29 @@ public sealed class BotWebhookService(
         var maxTotal = series.Max(x => x.Total);
         var lines = series.Select(item =>
         {
-            var blocks = maxTotal <= 0
-                ? string.Empty
-                : new string('█', Math.Max(1, (int)Math.Round((item.Total / maxTotal) * 10m, MidpointRounding.AwayFromZero)));
-
+            var blocks = BuildTrafficBar(item.Total, maxTotal);
             return $"{item.Date:MM-dd} {blocks} ${item.Total:0.00}";
         });
 
         return "📊 Gráfica por día\n\n" + string.Join("\n", lines);
+    }
+
+    private static string BuildTrafficBar(decimal total, decimal maxTotal)
+    {
+        if (total <= 0 || maxTotal <= 0)
+        {
+            return "⬜";
+        }
+
+        var ratio = total / maxTotal;
+
+        return ratio switch
+        {
+            <= 0.25m => "🟩",
+            <= 0.50m => "🟨🟨",
+            <= 0.75m => "🟧🟧🟧",
+            _ => "🟥🟥🟥🟥"
+        };
     }
 
     private sealed class TelegramExpenseDraft
@@ -595,3 +610,4 @@ public sealed class BotWebhookService(
         public DateTime? LastMessageAtUtc { get; set; }
     }
 }
+
