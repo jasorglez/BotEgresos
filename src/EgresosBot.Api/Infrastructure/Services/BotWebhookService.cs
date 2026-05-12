@@ -16,6 +16,7 @@ public sealed class BotWebhookService(
     IExpenseService expenseService) : IBotWebhookService
 {
     private const string IdleState = "IDLE";
+    private const string ExpenseDateState = "EXPENSE_DATE";
     private const string ExpenseAmountState = "EXPENSE_AMOUNT";
     private const string ExpenseDescriptionState = "EXPENSE_DESCRIPTION";
     private const string ExpenseConfirmState = "EXPENSE_CONFIRM";
@@ -184,7 +185,7 @@ public sealed class BotWebhookService(
             case IdleState:
                 if (lowerText is "1" or "a" or "registrar" or "egreso" or "gasto")
                 {
-                    session.CurrentState = ExpenseAmountState;
+                    session.CurrentState = ExpenseDateState;
                     draft = new TelegramExpenseDraft();
                     await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
 
@@ -193,7 +194,7 @@ public sealed class BotWebhookService(
                         Success = true,
                         Channel = "TELEGRAM",
                         ChatId = chatId,
-                        Message = "🧾 Vamos a registrar un egreso.\n\n💵 Envia el monto.\nEjemplo: 250.50\n\n↩️ Escribe 0 para volver al menu."
+                        Message = "🧾 Vamos a registrar un egreso.\n\n📅 ¿Deseas la fecha de hoy?\nPresiona S para usar hoy.\nPara otro día, escríbelo en formato AAAA-MM-DD o DD/MM/AAAA.\n\n↩️ Escribe 0 para volver al menú."
                     };
                 }
 
@@ -252,6 +253,31 @@ public sealed class BotWebhookService(
                     Message = BuildMainMenu(botLink.User)
                 };
 
+            case ExpenseDateState:
+                if (!TryParseExpenseDate(normalizedText, out var expenseDate))
+                {
+                    await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
+                    return new BotWebhookResponse
+                    {
+                        Success = false,
+                        Channel = "TELEGRAM",
+                        ChatId = chatId,
+                        Message = "⚠️ No entendí la fecha.\nPresiona S para usar hoy o escribe una fecha como 2026-05-11 o 11/05/2026.\n\n↩️ Escribe 0 para volver al menú."
+                    };
+                }
+
+                draft.ExpenseDate = expenseDate;
+                session.CurrentState = ExpenseAmountState;
+                await SaveSessionAsync(session, draft, normalizedText, cancellationToken);
+
+                return new BotWebhookResponse
+                {
+                    Success = true,
+                    Channel = "TELEGRAM",
+                    ChatId = chatId,
+                    Message = $"📅 Fecha seleccionada: {expenseDate:yyyy-MM-dd}\n\n💵 Ahora envía el monto.\nEjemplo: 250.50\n\n↩️ Escribe 0 para volver al menú."
+                };
+
             case ExpenseAmountState:
                 if (!TryParseAmount(normalizedText, out var amount))
                 {
@@ -299,7 +325,7 @@ public sealed class BotWebhookService(
                     Success = true,
                     Channel = "TELEGRAM",
                     ChatId = chatId,
-                    Message = $"✅ Confirma el egreso:\n\n💵 Monto: ${draft.AmountSubtotal:0.00} MXN\n📝 Descripcion: {draft.Description}\n\n1 Confirmar\n4 Cancelar\n↩️ 0 Volver al menu"
+                    Message = $"✅ Confirma el egreso:\n\n📅 Fecha: {draft.ExpenseDate:yyyy-MM-dd}\n💵 Monto: ${draft.AmountSubtotal:0.00} MXN\n📝 Descripcion: {draft.Description}\n\n1 Confirmar\n4 Cancelar\n↩️ 0 Volver al menú"
                 };
 
             case ExpenseConfirmState:
@@ -333,7 +359,7 @@ public sealed class BotWebhookService(
                     botLink.UserId,
                     new CreateExpenseRequest
                     {
-                        ExpenseDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                        ExpenseDate = draft.ExpenseDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
                         Description = draft.Description,
                         AmountSubtotal = draft.AmountSubtotal.Value,
                         IvaAmount = 0,
@@ -438,6 +464,32 @@ public sealed class BotWebhookService(
             out amount) && amount > 0;
     }
 
+    private static bool TryParseExpenseDate(string value, out DateOnly expenseDate)
+    {
+        var normalized = value.Trim();
+
+        if (normalized.Equals("s", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("si", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("sí", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("hoy", StringComparison.OrdinalIgnoreCase))
+        {
+            expenseDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            return true;
+        }
+
+        if (DateOnly.TryParseExact(normalized, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out expenseDate))
+        {
+            return true;
+        }
+
+        if (DateOnly.TryParseExact(normalized, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out expenseDate))
+        {
+            return true;
+        }
+
+        return DateOnly.TryParse(normalized, CultureInfo.InvariantCulture, DateTimeStyles.None, out expenseDate);
+    }
+
     private static bool TryExtractStartCode(string? text, out string linkCode)
     {
         linkCode = string.Empty;
@@ -536,6 +588,7 @@ public sealed class BotWebhookService(
 
     private sealed class TelegramExpenseDraft
     {
+        public DateOnly? ExpenseDate { get; set; }
         public decimal? AmountSubtotal { get; set; }
         public string? Description { get; set; }
         public string? LastMessage { get; set; }
